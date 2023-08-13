@@ -43,6 +43,8 @@ function source.f \
     set -l aliases_before
     set -l global_variables_before
 
+    set -l indent "    "
+
     if not set --query _flag_quiet
         set abbrs_before (abbr --list)
         set aliases_before (alias | string split --fields 2 " ")
@@ -54,16 +56,10 @@ function source.f \
             end
         end
 
-        # TODO: <kpbaks 2023-08-05 23:12:47> maybe test if global variables changes?
-        # use set --global --long
         set global_variables_before (set --global | string split --fields 1 " ")
     end
-    # echo "aliases before:"
-    # printf " - %s\n" $aliases_before
-    # echo "functions before:"
-    # printf " - %s\n" $functions_before
-    source $file
 
+    source $file
     set -l status_of_sourcing_file $status
 
     set -l functions_after
@@ -80,7 +76,6 @@ function source.f \
                 set -e functions_after[$idx]
             end
         end
-
 
         set global_variables_after (set --global | string split --fields 1 " ")
     end
@@ -110,16 +105,20 @@ function source.f \
         end
 
         if test (count $functions_removed) -gt 0
-            echo "removed functions:"
+            printf "%s%d%s function%s removed:\n" \
+                $color (count $functions_removed) $reset \
+                (test (count $functions_removed) -eq 1; and echo ""; or echo "s")
             for func in $functions_removed
-                printf "  %s%s%s\n" $red $func $reset
+                printf "%s%s%s%s\n" $indent $red $func $reset
             end
         end
 
         if test (count $functions_added) -gt 0
-            echo "new functions:"
+            printf "%s%d%s new function%s:\n" \
+                $color (count $functions_added) $reset \
+                (test (count $functions_added) -eq 1; and echo ""; or echo "s")
             for func in $functions_added
-                printf "  %s%s%s\n" (set_color "#$fish_color_keyword") $func $reset
+                printf "%s%s%s%s\n" $indent (set_color "#$fish_color_keyword") $func $reset
             end
         end
     end
@@ -136,10 +135,12 @@ function source.f \
         # TODO: <kpbaks 2023-08-05 23:16:59> show what the abbreviation expands to
 
         if test (count $abbrs_added) -gt 0
-			echo "new abbreviations:"
-		end
-        for abbr in $abbrs_added
-            printf "  %s%s%s\n" $blue $abbr $reset
+            printf "%s%d%s new abbreviation%s:\n" \
+                $color (count $abbrs_added) $reset \
+                (test (count $abbrs_added) -eq 1; and echo ""; or echo "s")
+            for abbr in $abbrs_added
+                printf "%s%s%s%s\n" $indent $blue $abbr $reset
+            end
         end
     end
 
@@ -160,23 +161,27 @@ function source.f \
         end
 
         if test (count $aliases_removed) -gt 0
-            echo "removed aliases:"
+            printf "%s%d%s alias%s removed:\n" \
+                $color (count $aliases_removed) $reset \
+                (test (count $aliases_removed) -eq 1; and echo ""; or echo "s")
             for alias in $aliases_removed
-                printf "  %s%s%s\n" $red $alias $reset
+                printf "%s%s%s%s\n" $indent $red $alias $reset
             end
         end
 
         if test (count $aliases_added) -gt 0
-            echo "new aliases:"
+            printf "%s%d%s new alias%s:\n" \
+                $color (count $aliases_added) $reset \
+                (test (count $aliases_added) -eq 1; and echo ""; or echo "s")
 
             for alias_added in $aliases_added
                 alias \
                     | while read keyword alias expansion
                     test $alias = $alias_added; or continue
-                    printf "  %s%s%s -> " (set_color "#$fish_color_keyword") $alias $reset
+                    printf "%s%s%s%s -> " $indent (set_color "#$fish_color_keyword") $alias $reset
                     echo $expansion \
-					| fish_indent --ansi
-					# | string replace --regex "^'(.*)'\$" '$1' \
+                        | string replace --regex "^'(.*)'\$" '$1' \
+                        | fish_indent --ansi
                 end
             end
         end
@@ -203,26 +208,32 @@ function source.f \
         end
 
         if test (count $global_variables_removed) -gt 0
-            echo "removed global variables:"
+            printf "%s%d%s global variable%s removed:\n" \
+                $color (count $global_variables_removed) $reset \
+                (test (count $global_variables_removed) -eq 1; and echo ""; or echo "s")
+
+
             for var in $global_variables_removed
-                printf "  %s%s%s\n" $red $var $reset
+                printf "%s%s%s%s\n" $indent $red $var $reset
             end
         end
 
         if test (count $global_variables_added) -gt 0
-            echo "new global variables:"
+            printf "%s%d%s new global variable%s:\n" \
+                $color (count $global_variables_added) $reset \
+                (test (count $global_variables_added) -eq 1; and echo ""; or echo "s")
 
             for var in $global_variables_added
-                printf "  %s%s%s\n" $blue $var $reset
+                printf "%s%s%s%s = %s\n" $indent $blue $var $reset $$var
             end
         end
 
-        if test (count $global_variables_changed) -gt 0
-            echo "changed global variables:"
-
-            for var in $global_variables_changed
-                printf "  %s%s%s\n" $yellow $var $reset
-            end
-        end
+        # if test (count $global_variables_changed) -gt 0
+        #     echo "changed global variables:"
+        #
+        #     for var in $global_variables_changed
+        #         printf "  %s%s%s\n" $yellow $var $reset
+        #     end
+        # end
     end
 end
