@@ -50,7 +50,7 @@ $(set_color yellow)Options:$(set_color normal)
         return 1
     end
 
-		for file in $dir/*.fish
+    for file in $dir/*.fish
         test -r $file; or continue
         if not set --query _flag_quiet
             printf "[%d/%d] sourcing %s%s%s ...\n" $i $N $blue $file $reset

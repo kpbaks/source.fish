@@ -224,7 +224,17 @@ function source.f \
                 (test (count $global_variables_added) -eq 1; and echo ""; or echo "s")
 
             for var in $global_variables_added
-                printf "%s%s%s%s = %s\n" $indent $blue $var $reset $$var
+                # Check if the value is a valid color i.e. a color value that `set_color` accepts.
+                # If it is, then we'll print the value in that color.
+                set -l color $reset
+                if contains -- $$var (set_color --print-colors)
+                    set color (set_color $$var)
+                else if string match --quiet --regex "^#[0-9a-fA-F]{6}\$" $$var
+                    set color (set_color --background $$var)
+                end
+                printf "%s%s%s%s = %s%s%s\n" $indent \
+                    $blue $var $reset \
+                    $color $$var $reset
             end
         end
 
