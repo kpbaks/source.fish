@@ -36,7 +36,6 @@ $(set_color yellow)Options:$(set_color normal)
         return 1
     end
     set -l N (count $dir/*.fish)
-    set -l i 1
 
     set -l blue (set_color blue)
     set -l green (set_color green)
@@ -50,28 +49,31 @@ $(set_color yellow)Options:$(set_color normal)
         return 1
     end
 
+    set -l success_emojies 🎉 🎊 😎 👍 👌
+    set -l error_emojies 😥 😭 😱 😨 😰 😓
+    set -l i 1
     for file in $dir/*.fish
         test -r $file; or continue
+        set -l line (printf "[%d/%d] sourcing %s%s%s ..." $i $N $blue $file $reset)
         if not set --query _flag_quiet
-            printf "[%d/%d] sourcing %s%s%s ...\n" $i $N $blue $file $reset
+            printf "%s" $line
         end
         source.f $file
         set -l status_of_sourcing_file $status
 
         if not set --query _flag_quiet
-            set -l color $reset
-            set -l success_emojies 🎉 🎊 😎 👍 👌
+            set -l color $blue
             # set -l emoji "✅"
             set emoji (random choice $success_emojies)
             if test $status_of_sourcing_file -ne 0
                 set color $red
                 # set emoji "❌"
-                set -l error_emojies 😥 😭 😱 😨 😰 😓
                 set emoji (random choice $error_emojies)
             end
-            printf "[%d/%d] sourced  %s%s%s %s\n" $i $N $color $file $reset $emoji
+            printf "\r%s" (string repeat --count (string length $line) " ") # clear line
+            printf "\r[%d/%d] sourced %s%s%s %s\n" $i $N $color $file $reset $emoji
         end
 
-        set -l i (math $i + 1)
+        set i (math $i + 1)
     end
 end
