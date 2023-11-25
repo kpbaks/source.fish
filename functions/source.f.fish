@@ -1,20 +1,37 @@
-function source.f \
-    --description 'Source a .fish file, and report what changes it made'
-    # --argument-names file \
-
+function source.f --description 'Source a .fish file, and report what changes it made'
     set -l options (fish_opt --short=h --long=help)
     set -a options (fish_opt --short=q --long=quiet)
     if not argparse $options -- $argv
+        eval (status function) --help
         return 2
     end
 
+    set -l blue (set_color blue)
+    set -l green (set_color green)
+    set -l reset (set_color normal)
+    set -l red (set_color red)
+    set -l yellow (set_color yellow)
+    set -l bold (set_color --bold)
+
     if set --query _flag_help
-        printf "Usage: source.f [options] file\n"
-        printf "Source a .fish file, and report what changes it made\n"
-        printf "\n"
-        printf "Options:\n"
-        printf "  -h, --help    Show this help message and exit\n"
-        printf "  -q, --quiet   Don't print anything\n"
+        set -l option_color $green
+        set -l section_title_color $yellow
+        # Overall description of the command
+        printf "%sSource a .fish file, and report what changes it made%s\n" \
+            $bold $reset >&2
+        printf "\n" >&2
+        # Usage
+        printf "%sUsage:%s %s%s%s [options] FILE\n" $section_title_color $reset (set_color $fish_color_command) (status current-command) $reset >&2
+
+        printf "\n" >&2
+        # Description of the options and flags
+        printf "%sOptions:%s\n" $section_title_color $reset >&2
+        printf "\t%s-h%s, %s--help%s      Show this help message and exit\n" $option_color $reset $option_color $reset >&2
+        printf "\t%s-q%s, %s--quiet%s     Do not print the changes made by the sourced file\n" $option_color $reset $option_color $reset >&2
+        printf "\n" >&2
+
+        __source.fish::help_footer >&2
+
         return 0
     end
 
@@ -31,12 +48,6 @@ function source.f \
         echo "$file is not a file" >&2
         return 1
     end
-
-    set -l blue (set_color blue)
-    set -l green (set_color green)
-    set -l reset (set_color normal)
-    set -l red (set_color red)
-    set -l yellow (set_color yellow)
 
     set -l functions_before
     set -l abbrs_before
@@ -62,6 +73,10 @@ function source.f \
     source $file
     set -l status_of_sourcing_file $status
 
+    # The rest of the function will print the changes made by the sourced file.
+    # If the user passed the --quiet flag, we'll skip this.
+    set --query _flag_quiet; and return $status_of_sourcing_file
+
     set -l functions_after
     set -l abbrs_after
     set -l aliases_after
@@ -79,10 +94,6 @@ function source.f \
 
         set global_variables_after (set --global | string split --fields 1 " ")
     end
-
-    # The rest of the function will print the changes made by the sourced file.
-    # If the user passed the --quiet flag, we'll skip this.
-    set --query _flag_quiet; and return 0
 
     set -l color $green
     if test $status_of_sourcing_file -ne 0
@@ -246,4 +257,6 @@ function source.f \
         #     end
         # end
     end
+
+    return $status_of_sourcing_file
 end
