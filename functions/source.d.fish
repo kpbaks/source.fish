@@ -1,7 +1,7 @@
 function source.d --description 'Source all *.fish files in a directory'
     functions --query source.f; or return 1
-    set -l options (fish_opt --short=h --long=help)
-    set -a options (fish_opt --short=q --long=quiet)
+
+    set -l options h/help q/quiet
     if not argparse $options -- $argv
         eval (status function) --help
         return 2
@@ -12,6 +12,7 @@ function source.d --description 'Source all *.fish files in a directory'
     set -l reset (set_color normal)
     set -l red (set_color red)
     set -l yellow (set_color yellow)
+    set -l cyan (set_color cyan)
     set -l bold (set_color --bold)
 
     if set --query _flag_help
@@ -21,10 +22,10 @@ function source.d --description 'Source all *.fish files in a directory'
         printf "%sSource all *.fish files in a directory%s\n" $bold $reset >&2
         printf "\n" >&2
         # Usage
-        printf "%sUsage:%s %s%s%s [options] [DIR ...]\n" $section_title_color $reset (set_color $fish_color_command) (status current-command) $reset >&2
+        printf "%sUSAGE:%s %s%s%s [options] [DIR ...]\n" $section_title_color $reset (set_color $fish_color_command) (status current-command) $reset >&2
         printf "\n" >&2
         # Description of the options and flags
-        printf "%sOptions:%s\n" $section_title_color $reset >&2
+        printf "%sOPTIONS:%s\n" $section_title_color $reset >&2
         printf "\t%s-h%s, %s--help%s      Show this help message and exit\n" $option_color $reset $option_color $reset >&2
         printf "\t%s-q%s, %s--quiet%s     Do not print sourced files\n" $option_color $reset $option_color $reset >&2
 
@@ -57,6 +58,7 @@ function source.d --description 'Source all *.fish files in a directory'
     set -l success_emojies 🎉 🎊 😎 👍 👌
     set -l error_emojies 😥 😭 😱 😨 😰 😓
     set -l i 1
+    set -l t_total 0.0
     for file in $dir/*.fish
         test -r $file; or continue
         set -l line (printf "[%d/%d] sourcing %s%s%s ..." $i $N $blue $file $reset)
@@ -68,6 +70,8 @@ function source.d --description 'Source all *.fish files in a directory'
         set -l status_of_sourcing_file $status
         set -l t_end (date +%s.%N)
         set -l t_diff (math $t_end - $t_start)
+        # Accumelate into a total, that is displayed at the end
+        set t_total (math "$t_total + $t_diff")
         # set -l t $CMD_DURATION
 
         if not set --query _flag_quiet
@@ -85,11 +89,15 @@ function source.d --description 'Source all *.fish files in a directory'
             printf "\r%s" (string repeat --count (string length $line) " ") # clear line
             printf "\r[%d/%d] sourced %s%s%s %s in %s seconds\n" $i $N $color $file $reset $emoji $t_diff
 
-            if string length -- $update > /dev/null
+            if string length -- $update >/dev/null
                 printf "%s\n" $update
             end
         end
 
         set i (math $i + 1)
+    end
+
+    if not set --query _flag_quiet
+        printf "took %s%s%s seconds in total\n" $cyan $t_total $reset
     end
 end

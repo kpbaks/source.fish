@@ -1,6 +1,5 @@
 function source.f --description 'Source a .fish file, and report what changes it made'
-    set -l options (fish_opt --short=h --long=help)
-    set -a options (fish_opt --short=q --long=quiet)
+    set -l options h/help q/quiet
     if not argparse $options -- $argv
         eval (status function) --help
         return 2
@@ -17,15 +16,15 @@ function source.f --description 'Source a .fish file, and report what changes it
         set -l option_color $green
         set -l section_title_color $yellow
         # Overall description of the command
-        printf "%sSource a .fish file, and report what changes it made%s\n" \
-            $bold $reset >&2
+        printf "%sSource a .fish file, and report what changes it made%s\n" $bold $reset >&2
+        printf "%se.g. what new variables or functions were created%s\n" $bold $reset >&2
         printf "\n" >&2
         # Usage
-        printf "%sUsage:%s %s%s%s [options] FILE\n" $section_title_color $reset (set_color $fish_color_command) (status current-command) $reset >&2
+        printf "%sUSAGE:%s %s%s%s [options] FILE\n" $section_title_color $reset (set_color $fish_color_command) (status current-command) $reset >&2
 
         printf "\n" >&2
         # Description of the options and flags
-        printf "%sOptions:%s\n" $section_title_color $reset >&2
+        printf "%sOPTIONS:%s\n" $section_title_color $reset >&2
         printf "\t%s-h%s, %s--help%s      Show this help message and exit\n" $option_color $reset $option_color $reset >&2
         printf "\t%s-q%s, %s--quiet%s     Do not print the changes made by the sourced file\n" $option_color $reset $option_color $reset >&2
         printf "\n" >&2
