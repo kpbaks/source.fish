@@ -43,15 +43,15 @@ function source.d --description 'Source all *.fish files in a directory'
     end
 
     if not test -d $dir
-        printf "%serror:%s Directory '$dir' does not exist" $red $reset >&2
-        printf "see: %s --help\n" (status current-function)
+        printf "%serror%s%s directory '$dir' does not exist" $red $reset >&2
+        printf "try: %s%s\n" (printf (echo "$(status current-function) --help" | fish_indent --ansi))
         return 2
     end
     set -l N (count $dir/*.fish)
 
     if test $N -eq 0
-        printf "%serror:%s No *.fish files found in %s$dir%s\n" $red $reset (set_color --italic blue) $reset >&2
-        printf "%ssee:%s %s --help\n" $yellow $reset (status current-function)
+        printf "%serror%s: no *.fish files found in %s$dir%s\n" $red $reset (set_color --italic blue) $reset >&2
+        printf "try: %s%s\n" (printf (echo "$(status current-function) --help" | fish_indent --ansi))
         return 1
     end
 
