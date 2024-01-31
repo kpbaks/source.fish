@@ -128,7 +128,7 @@ function source.f --description 'Source a .fish file, and report what changes it
                 $color (count $functions_added) $reset \
                 (test (count $functions_added) -eq 1; and echo ""; or echo "s")
             for func in $functions_added
-                printf "%s%s%s%s\n" $indent (set_color "#$fish_color_keyword") $func $reset
+                printf "%s%s%s%s\n" $indent (set_color $fish_color_command) $func $reset
             end
         end
     end
