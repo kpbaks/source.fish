@@ -1,4 +1,4 @@
-function source.f --description 'Source a .fish file, and report what changes it made'
+function source.f --description 'Source a .fish file, and report what changes it made to the shell context'
     set -l options h/help q/quiet
     if not argparse $options -- $argv
         eval (status function) --help
@@ -32,7 +32,7 @@ function source.f --description 'Source a .fish file, and report what changes it
         __source.fish::help_footer >&2
 
         return 0
-    end
+    end >&2
 
     set -l argc (count $argv)
     if test $argc -eq 0
@@ -58,7 +58,7 @@ function source.f --description 'Source a .fish file, and report what changes it
     if not set --query _flag_quiet
         set abbrs_before (abbr --list)
         set aliases_before (alias | string split --fields 2 " ")
-        set functions_before (functions)
+        set functions_before (functions --all)
         for alias in $aliases_before
             set -l idx (contains --index -- $alias $functions_before)
             if test -n $idx
@@ -83,7 +83,7 @@ function source.f --description 'Source a .fish file, and report what changes it
     if not set --query _flag_quiet
         set abbrs_after (abbr --list)
         set aliases_after (alias | string split --fields 2 " ")
-        set functions_after (functions)
+        set functions_after (functions --all)
         for alias in $aliases_after
             set -l idx (contains --index -- $alias $functions_after)
             if test -n $idx
