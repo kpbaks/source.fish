@@ -34,9 +34,8 @@ function source.d --description 'Source all *.fish files in a directory'
         return 0
     end
 
-    set -l argc (count $argv)
     set -l dir $PWD
-    if test $argc -gt 0
+    if test (count $argv) -gt 0
         set dir $argv[1]
     else
         printf "No directory specified. Using current directory %s$dir%s\n" (set_color --italic blue) $reset >&2
@@ -47,7 +46,8 @@ function source.d --description 'Source all *.fish files in a directory'
         printf "try: %s%s\n" (printf (echo "$(status current-function) --help" | fish_indent --ansi))
         return 2
     end
-    set -l N (count $dir/*.fish)
+
+    set -l N (count $dir/{,functions/,conf.d/,completions/}*.fish)
 
     if test $N -eq 0
         printf "%serror%s: no *.fish files found in %s$dir%s\n" $red $reset (set_color --italic blue) $reset >&2
@@ -59,7 +59,7 @@ function source.d --description 'Source all *.fish files in a directory'
     set -l error_emojies 😥 😭 😱 😨 😰 😓
     set -l i 1
     set -l t_total 0.0
-    for file in $dir/*.fish
+    for file in $dir/*.fish $dir/{functions,conf.d,completions}/*.fish
         test -r $file; or continue
         set -l line (printf "[%d/%d] sourcing %s%s%s ..." $i $N $blue $file $reset)
         if not set --query _flag_quiet
@@ -98,6 +98,6 @@ function source.d --description 'Source all *.fish files in a directory'
     end
 
     if not set --query _flag_quiet
-        printf "took %s%s%s seconds in total\n" $cyan $t_total $reset
+        printf "Took %s%s%s seconds in total\n" $cyan $t_total $reset
     end
 end
